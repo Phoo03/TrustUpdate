@@ -1,0 +1,288 @@
+{
+  "info": {
+    "name": "TrustUpdate API",
+    "description": "Complete collection for the TrustUpdate Secure Software Update Verification Platform.\n\nSetup:\n1. Set BASE_URL variable to http://localhost:5000\n2. Set ADMIN_PASSWORD variable to your administrator password\n3. Run 'Login (admin)' to populate the TOKEN variable automatically\n4. All protected endpoints use the TOKEN variable automatically",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "BASE_URL", "value": "http://localhost:5000" },
+    { "key": "ADMIN_PASSWORD", "value": "REPLACE_WITH_YOUR_ADMIN_PASSWORD" },
+    { "key": "TOKEN", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register (admin user)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{BASE_URL}}/api/auth/register",
+            "body": { "mode": "raw", "raw": "{\"username\":\"testadmin\",\"password\":\"{{ADMIN_PASSWORD}}\",\"role\":\"admin\"}" }
+          }
+        },
+        {
+          "name": "Login (admin) — saves TOKEN",
+          "event": [{
+            "listen": "test",
+            "script": { "exec": ["if (pm.response.code === 200) { pm.collectionVariables.set('TOKEN', pm.response.json().token); }"] }
+          }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{BASE_URL}}/api/auth/login",
+            "body": { "mode": "raw", "raw": "{\"username\":\"admin\",\"password\":\"{{ADMIN_PASSWORD}}\"}" }
+          }
+        },
+        {
+          "name": "Login — invalid credentials (401)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{BASE_URL}}/api/auth/login",
+            "body": { "mode": "raw", "raw": "{\"username\":\"admin\",\"password\":\"WrongPassword\"}" }
+          }
+        },
+        {
+          "name": "Get current user (me)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }],
+            "url": "{{BASE_URL}}/api/auth/me"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Verify",
+      "item": [
+        {
+          "name": "Verify Update — with user-supplied hash (MATCH/VERIFIED)",
+          "request": {
+            "method": "POST",
+            "url": "{{BASE_URL}}/api/verify",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "file", "type": "file", "description": "Upload any binary file" },
+                { "key": "softwareName", "value": "Mozilla Firefox", "type": "text" },
+                { "key": "claimedVersion", "value": "127.0.1", "type": "text" },
+                { "key": "publisher", "value": "Mozilla Foundation", "type": "text" },
+                { "key": "referenceHash", "value": "USE_ACTUAL_SHA256_HERE", "type": "text", "description": "Replace with the real SHA-256 of the uploaded file" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Verify Update — unknown software (UNKNOWN expected)",
+          "request": {
+            "method": "POST",
+            "url": "{{BASE_URL}}/api/verify",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "file", "type": "file" },
+                { "key": "softwareName", "value": "NewUnknownApp", "type": "text" },
+                { "key": "claimedVersion", "value": "1.0.0", "type": "text" },
+                { "key": "publisher", "value": "UnknownPublisher", "type": "text" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Verify Update — wrong hash (UNTRUSTED expected)",
+          "request": {
+            "method": "POST",
+            "url": "{{BASE_URL}}/api/verify",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "file", "type": "file" },
+                { "key": "softwareName", "value": "Mozilla Firefox", "type": "text" },
+                { "key": "claimedVersion", "value": "127.0.1", "type": "text" },
+                { "key": "publisher", "value": "Mozilla Foundation", "type": "text" },
+                { "key": "referenceHash", "value": "0000000000000000000000000000000000000000000000000000000000000000", "type": "text" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Verify Update — missing required fields (400)",
+          "request": {
+            "method": "POST",
+            "url": "{{BASE_URL}}/api/verify",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "softwareName", "value": "Firefox", "type": "text" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "History",
+      "item": [
+        {
+          "name": "Get History (paginated)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/history?page=1&limit=10&sort=-timestamp", "query": [
+              { "key": "page", "value": "1" },
+              { "key": "limit", "value": "10" },
+              { "key": "sort", "value": "-timestamp" }
+            ]}
+          }
+        },
+        {
+          "name": "Get History — filter by UNTRUSTED",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/history?result=UNTRUSTED", "query": [{ "key": "result", "value": "UNTRUSTED" }] }
+          }
+        },
+        {
+          "name": "Export Audit Log — CSV",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/history/export?format=csv", "query": [{ "key": "format", "value": "csv" }] }
+          }
+        },
+        {
+          "name": "Export Audit Log — JSON",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/history/export?format=json", "query": [{ "key": "format", "value": "json" }] }
+          }
+        },
+        {
+          "name": "Get History — no token (401)",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/api/history"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Trusted Software",
+      "item": [
+        {
+          "name": "List Trusted Software",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/api/trusted-software"
+          }
+        },
+        {
+          "name": "Create Trusted Software (admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{BASE_URL}}/api/trusted-software",
+            "body": { "mode": "raw", "raw": "{\"softwareName\":\"Google Chrome\",\"publisher\":\"Google LLC\",\"latestApprovedVersion\":\"126.0.6478.127\",\"referenceHash\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"trustStatus\":\"TRUSTED\"}" }
+          }
+        },
+        {
+          "name": "Update Trusted Software (admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{BASE_URL}}/api/trusted-software/REPLACE_WITH_ID",
+            "body": { "mode": "raw", "raw": "{\"softwareName\":\"Google Chrome\",\"publisher\":\"Google LLC\",\"latestApprovedVersion\":\"127.0.6533.72\",\"trustStatus\":\"TRUSTED\"}" }
+          }
+        },
+        {
+          "name": "Delete Trusted Software (admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }],
+            "url": "{{BASE_URL}}/api/trusted-software/REPLACE_WITH_ID"
+          }
+        },
+        {
+          "name": "Create Trusted Software — viewer role (403)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer VIEWER_TOKEN_HERE" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{BASE_URL}}/api/trusted-software",
+            "body": { "mode": "raw", "raw": "{\"softwareName\":\"Test\",\"publisher\":\"Test\",\"latestApprovedVersion\":\"1.0\"}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Publishers",
+      "item": [
+        {
+          "name": "List Publishers",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }],
+            "url": "{{BASE_URL}}/api/publishers"
+          }
+        },
+        {
+          "name": "Create Publisher (admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{BASE_URL}}/api/publishers",
+            "body": { "mode": "raw", "raw": "{\"name\":\"Google LLC\",\"verifiedIdentity\":\"CN=Google LLC, O=Google LLC, L=Mountain View, S=California, C=US\",\"trusted\":true}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Stats",
+      "item": [
+        {
+          "name": "Get Dashboard Stats (30 days)",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/api/stats"
+          }
+        },
+        {
+          "name": "Get Dashboard Stats (7 days)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{BASE_URL}}/api/stats?days=7", "query": [{ "key": "days", "value": "7" }] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/api/health"
+          }
+        }
+      ]
+    }
+  ]
+}

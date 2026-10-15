@@ -1,0 +1,74 @@
+# Environment and Secret Files
+.env
+.env.*
+*.env
+*.env.*
+*.local
+!.env.example
+
+# Private Keys, Certificates, and Credentials
+*.pem
+*.key
+*.pkcs12
+*.pfx
+*.p12
+*.crt
+*.cer
+*.der
+id_rsa*
+id_ed25519*
+
+# Database Files, Exports, and Backups
+*.sql
+*.sqlite
+*.sqlite3
+*.db
+*.rdb
+*.dump
+*.backup
+*_backup.*
+*_backup.json
+server/data/
+server/trustupdate_db_backup.json
+server/sample_data.sql
+
+# Dependencies
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# Uploads and Temporary Files
+uploads/
+server/uploads/
+client/uploads/
+*.tmp
+
+# Backups and Editor Artifacts
+*.bak
+*.backup
+*.old
+*.orig
+*~
+server/backups_security/
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Build Output
+client/build/
+client/dist/
+build/
+dist/
+
+# Test Coverage and Logs
+coverage/
+client/coverage/
+server/coverage/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+PUBLIC_RELEASE_SECURITY_CHECK.md
