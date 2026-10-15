@@ -260,3 +260,22 @@ Set the `BASE_URL` variable to `http://localhost:5000` and `ADMIN_PASSWORD` to y
 | 3 | **SUSPICIOUS** | Some results are NO_REFERENCE / MISSING; or UNKNOWN_PUBLISHER; or NEWER_THAN_APPROVED |
 | 4 | **VERIFIED** | All results are pass tokens |
 | 5 | **SUSPICIOUS** | Fallback for any unclassified state |
+
+## Project Development Team
+
+**Sri Lanka Institute of Information Technology (SLIIT)**  
+**Module:** IE3092 – Information Security Project  
+**Group:** ISP Group 23
+
+| No. | Team Member | Student ID |
+|---|---|---|
+| 1 | LAKSHAN W.M.H.C. | IT23659230 |
+| 2 | LANDAGE P.D. | IT23580626 |
+| 3 | DALUWATTA L.G. | IT23578296 |
+| 4 | KALHARA R.W.V.K.S. | IT23555730 |
+
+**Project Title:** TrustUpdate – Secure Software Update Verification and Trust Management Platform
+
+**Developed by:** IE3092 ISP Group 23, SLIIT.
+
+
